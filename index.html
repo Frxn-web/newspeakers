@@ -117,14 +117,23 @@
             background-color: #e2e8f0; /* Background for the ad */
             border-radius: 0.75rem;
             padding: 1rem;
-            min-height: 120px; /* Minimum height for the ad */
+            /* Removed min-height to allow ad content to define height */
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Allow multiple ad slots to stack */
             justify-content: center;
             align-items: center;
             color: #64748b;
             font-size: 0.9rem;
             border: 1px dashed #94a3b8;
+            overflow: hidden; /* Prevent overflow if ad is too wide */
+        }
+        /* Ensure ad slots take full width but center content */
+        .ad-slot-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 0.5rem; /* Spacing between ad slots if multiple are visible */
         }
         /* Media queries for responsiveness */
         @media (max-width: 640px) {
@@ -178,20 +187,15 @@
         </div>
 
         <div id="ad-container" class="ad-container hidden">
-            <!-- Aquí iría tu código de Adsterra o de otra red publicitaria -->
-            <!-- Ejemplo de Adsterra (reemplaza con tu código real): -->
-            <!-- <script type="text/javascript">
-                atOptions = {
-                    'key' : 'TU_CODIGO_DE_ADSTERRA',
-                    'format' : 'iframe',
-                    'height' : 90,
-                    'width' : 728,
-                    'params' : {}
-                };
-                document.write('<script type="text/javascript" src="//www.profitabledisplaynetwork.com/TU_CODIGO_DE_ADSTERRA/invoke.js"></script>');
-            </script> -->
-            <p>Espacio Publicitario</p>
-            <p class="text-xs mt-2">(Aquí se cargará un anuncio)</p>
+            <!-- Ad slot for desktop (728x90) - visible on medium and large screens -->
+            <div id="ad-slot-desktop" class="hidden md:flex justify-center items-center w-full">
+                <!-- Adsterra desktop ad will be loaded here dynamically -->
+            </div>
+
+            <!-- Ad slot for mobile (468x60) - visible on small screens -->
+            <div id="ad-slot-mobile" class="flex md:hidden justify-center items-center w-full">
+                <!-- Adsterra mobile ad will be loaded here dynamically -->
+            </div>
         </div>
 
         <div class="nav-buttons">
@@ -200,13 +204,18 @@
         </div>
     </div>
 
+    <!-- Global Adsterra scripts (usually for pop-unders or interstitials) -->
+    <script type='text/javascript' src='//pl27164918.profitableratecpm.com/75/21/1c/75211c7c04968e1cd8198ae28c069705.js'></script>
+    <script async="async" data-cfasync="false" src="//pl27164890.profitableratecpm.com/b87b37f8047f02f9524df4104ca12881/invoke.js"></script>
+    <div id="container-b87b37f8047f02f9524df4104ca12881"></div>
+
     <script type="module">
-        // Importaciones de Firebase (si se necesitara persistencia de datos o autenticación)
+        // Firebase imports (if data persistence or authentication were needed)
         // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         // import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         // import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuración de Firebase (si se necesitara)
+        // Firebase configuration (if needed)
         // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         // const app = initializeApp(firebaseConfig);
         // const db = getFirestore(app);
@@ -219,25 +228,25 @@
         //     if (user) {
         //         userId = user.uid;
         //     } else {
-        //         // Si no hay usuario, intenta iniciar sesión anónimamente
+        //         // If no user, try to sign in anonymously
         //         try {
         //             if (typeof __initial_auth_token !== 'undefined') {
         //                 await signInWithCustomToken(auth, __initial_auth_token);
         //             } else {
         //                 await signInAnonymously(auth);
         //             }
-        //             userId = auth.currentUser?.uid || crypto.randomUUID(); // Obtener UID o generar uno si es anónimo
+        //             userId = auth.currentUser?.uid || crypto.randomUUID(); // Get UID or generate one if anonymous
         //         } catch (error) {
         //             console.error("Error al iniciar sesión:", error);
-        //             userId = crypto.randomUUID(); // Fallback si falla la autenticación
+        //             userId = crypto.randomUUID(); // Fallback if authentication fails
         //         }
         //     }
-        //     // Una vez que el usuario está listo, puedes cargar o guardar datos
+        //     // Once the user is ready, you can load or save data
         //     console.log("Firebase Auth Ready. User ID:", userId);
         // });
 
 
-        // Lista de palabras comunes en inglés (puedes expandirla mucho más)
+        // List of common English words (you can expand this much more)
         const words = [
             { word: "Hello", translation: "Hola", definition: "A greeting.", example: "Hello, how are you today?", example_translation: "¿Hola, cómo estás hoy?" },
             { word: "Good", translation: "Bueno/a", definition: "Of high quality or standard.", example: "She is a very good student.", example_translation: "Ella es una muy buena estudiante." },
@@ -274,6 +283,9 @@
         const wordAudioButton = document.getElementById('word-audio-button'); // Audio button for the word
         const exampleAudioButton = document.getElementById('example-audio-button'); // New audio button for the example
         const adContainer = document.getElementById('ad-container');
+        const adSlotDesktop = document.getElementById('ad-slot-desktop');
+        const adSlotMobile = document.getElementById('ad-slot-mobile');
+
 
         // Initialize Speech Synthesis API
         const synth = window.speechSynthesis;
@@ -311,8 +323,8 @@
         }
 
         /**
-         * Controls the visibility of the ad container.
-         * The ad is shown every 2 learning words.
+         * Controls the visibility and loading of the ad container.
+         * The ad is shown every 2 learning words, and the ad script is reloaded.
          */
         function handleAdDisplay() {
             // The ad is shown after every 2 learning items.
@@ -322,12 +334,71 @@
             // This means (learningItemCount + 1) % 3 === 0
             if ((learningItemCount + 1) % 3 === 0) {
                 adContainer.classList.remove('hidden');
-                // This is where your actual ad network code would go.
-                // For example, if you use Adsterra, you might have a function that reloads the ad.
-                // loadAdsterraAd(); // A function you would call to load a new ad
+                // Determine which ad slot to load based on screen width
+                // Using window.innerWidth for responsiveness, similar to Tailwind's md breakpoint (768px)
+                const isMobileView = window.innerWidth < 768; // Assuming md breakpoint is 768px for Tailwind
+
+                if (isMobileView) {
+                    adSlotDesktop.classList.add('hidden');
+                    adSlotMobile.classList.remove('hidden');
+                    loadAdsterraAdSlot('mobile');
+                } else {
+                    adSlotMobile.classList.add('hidden');
+                    adSlotDesktop.classList.remove('hidden');
+                    loadAdsterraAdSlot('desktop');
+                }
             } else {
                 adContainer.classList.add('hidden');
+                // Clear ad content when hiding to prevent stale ads or issues
+                adSlotDesktop.innerHTML = '';
+                adSlotMobile.innerHTML = '';
             }
+        }
+
+        /**
+         * Dynamically loads the Adsterra ad script for a specific slot.
+         * This function clears the existing content and re-inserts the ad script,
+         * which helps in registering new impressions with Adsterra.
+         * @param {string} slotType - 'mobile' or 'desktop'
+         */
+        function loadAdsterraAdSlot(slotType) {
+            let adKey, adWidth, adHeight;
+            let targetElement;
+
+            if (slotType === 'mobile') {
+                adKey = '4e9fc074a9e20c69d74d9b24322b9602';
+                adWidth = 468;
+                adHeight = 60;
+                targetElement = adSlotMobile;
+            } else { // desktop
+                adKey = 'be658370ac4bf5f371aa6088f3006ebf';
+                adWidth = 728;
+                adHeight = 90;
+                targetElement = adSlotDesktop;
+            }
+
+            // Clear previous ad content to force a new load
+            targetElement.innerHTML = '';
+
+            // Create and append the atOptions script
+            const atOptionsScript = document.createElement('script');
+            atOptionsScript.type = 'text/javascript';
+            atOptionsScript.innerHTML = `
+                atOptions = {
+                    'key' : '${adKey}',
+                    'format' : 'iframe',
+                    'height' : ${adHeight},
+                    'width' : ${adWidth},
+                    'params' : {}
+                };
+            `;
+            targetElement.appendChild(atOptionsScript);
+
+            // Create and append the invoke script
+            const invokeScript = document.createElement('script');
+            invokeScript.type = 'text/javascript';
+            invokeScript.src = `//www.highperformanceformat.com/${adKey}/invoke.js`;
+            targetElement.appendChild(invokeScript);
         }
 
         /**
@@ -392,21 +463,6 @@
 
         // Load the first word on page load
         window.onload = displayCurrentWord;
-
-        // Example function to load an ad (simulated)
-        // In a real environment, this would interact with your ad network's SDK
-        // function loadAdsterraAd() {
-        //     // This is where the logic to load a new Adsterra ad would go.
-        //     // This might involve reloading a script or calling a specific Adsterra function.
-        //     console.log("Cargando nuevo anuncio de Adsterra...");
-        //     // If Adsterra uses a script you can reload:
-        //     // const script = document.createElement('script');
-        //     // script.type = 'text/javascript';
-        //     // script.src = '//www.profitabledisplaynetwork.com/YOUR_ADSTERRA_CODE/invoke.js';
-        //     // adContainer.innerHTML = ''; // Clear the container before adding the new script
-        //     // adContainer.appendChild(script);
-        // }
     </script>
 </body>
 </html>
-
