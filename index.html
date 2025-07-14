@@ -1,1 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aprende Inglés Fácil</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome para el icono de audio -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Un gris azulado suave */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .card-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* Bordes más redondeados */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            padding: 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .word-display {
+            min-height: 280px; /* Increased min-height to accommodate new elements */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative; /* For positioning the audio button */
+        }
+        .word-section, .example-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .word {
+            font-size: 2.5rem; /* Larger font for the word */
+            font-weight: 700;
+            color: #334155; /* Dark gray */
+            line-height: 1; /* Remove extra space */
+        }
+        .audio-button {
+            background: none;
+            border: none;
+            color: #4f46e5;
+            font-size: 1.8rem; /* Audio icon size */
+            cursor: pointer;
+            transition: color 0.2s ease;
+            padding: 0.2rem; /* Small padding for click area */
+        }
+        .audio-button:hover {
+            color: #4338ca;
+        }
+        .translation {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e293b; /* Darker gray for translation */
+            margin-bottom: 0.75rem;
+        }
+        .definition {
+            font-size: 1.1rem;
+            color: #64748b; /* Medium gray */
+            margin-bottom: 1rem;
+        }
+        .example {
+            font-style: italic;
+            color: #475569; /* Slightly darker gray */
+            font-size: 1rem;
+            text-align: center;
+        }
+        .example-translation {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.25rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        .nav-button {
+            background-color: #4f46e5; /* Vibrant purple */
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.75rem; /* Rounded corners */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            flex: 1; /* Occupy available space */
+        }
+        .nav-button:hover {
+            background-color: #4338ca; /* Darker purple on hover */
+            transform: translateY(-2px);
+        }
+        .nav-button:disabled {
+            background-color: #cbd5e1; /* Light gray when disabled */
+            cursor: not-allowed;
+            transform: none;
+        }
+        .ad-container {
+            background-color: #e2e8f0; /* Background for the ad */
+            border-radius: 0.75rem;
+            padding: 1rem;
+            min-height: 120px; /* Minimum height for the ad */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            border: 1px dashed #94a3b8;
+        }
+        /* Media queries for responsiveness */
+        @media (max-width: 640px) {
+            .card-container {
+                padding: 1.5rem;
+            }
+            .word {
+                font-size: 2rem;
+            }
+            .audio-button {
+                font-size: 1.5rem;
+            }
+            .translation {
+                font-size: 1rem;
+            }
+            .definition {
+                font-size: 1rem;
+            }
+            .example {
+                font-size: 0.9rem;
+            }
+            .example-translation {
+                font-size: 0.8rem;
+            }
+            .nav-buttons {
+                flex-direction: column; /* Stack buttons on mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Aprende Inglés</h1>
+
+        <div id="word-display" class="word-display">
+            <div class="word-section">
+                <div class="word" id="current-word">Cargando...</div>
+                <button id="word-audio-button" class="audio-button" aria-label="Escuchar palabra">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+            <div class="translation" id="current-translation"></div>
+            <div class="definition" id="current-definition"></div>
+            <div class="example-section flex-col">
+                <div class="example" id="current-example"></div>
+                <div class="example-translation" id="current-example-translation"></div>
+                <button id="example-audio-button" class="audio-button" aria-label="Escuchar ejemplo">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="ad-container" class="ad-container hidden">
+            <!-- Aquí iría tu código de Adsterra o de otra red publicitaria -->
+            <!-- Ejemplo de Adsterra (reemplaza con tu código real): -->
+            <!-- <script type="text/javascript">
+                atOptions = {
+                    'key' : 'TU_CODIGO_DE_ADSTERRA',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {}
+                };
+                document.write('<script type="text/javascript" src="//www.profitabledisplaynetwork.com/TU_CODIGO_DE_ADSTERRA/invoke.js"></script>');
+            </script> -->
+            <p>Espacio Publicitario</p>
+            <p class="text-xs mt-2">(Aquí se cargará un anuncio)</p>
+        </div>
+
+        <div class="nav-buttons">
+            <button id="prev-button" class="nav-button" disabled>Anterior</button>
+            <button id="next-button" class="nav-button">Siguiente</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importaciones de Firebase (si se necesitara persistencia de datos o autenticación)
+        // import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // import { getFirestore, doc, getDoc, setDoc, collection, query, where, addDoc, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de Firebase (si se necesitara)
+        // const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // const app = initializeApp(firebaseConfig);
+        // const db = getFirestore(app);
+        // const auth = getAuth(app);
+
+        // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // let userId = null;
+
+        // onAuthStateChanged(auth, async (user) => {
+        //     if (user) {
+        //         userId = user.uid;
+        //     } else {
+        //         // Si no hay usuario, intenta iniciar sesión anónimamente
+        //         try {
+        //             if (typeof __initial_auth_token !== 'undefined') {
+        //                 await signInWithCustomToken(auth, __initial_auth_token);
+        //             } else {
+        //                 await signInAnonymously(auth);
+        //             }
+        //             userId = auth.currentUser?.uid || crypto.randomUUID(); // Obtener UID o generar uno si es anónimo
+        //         } catch (error) {
+        //             console.error("Error al iniciar sesión:", error);
+        //             userId = crypto.randomUUID(); // Fallback si falla la autenticación
+        //         }
+        //     }
+        //     // Una vez que el usuario está listo, puedes cargar o guardar datos
+        //     console.log("Firebase Auth Ready. User ID:", userId);
+        // });
+
+
+        // Lista de palabras comunes en inglés (puedes expandirla mucho más)
+        const words = [
+            { word: "Hello", translation: "Hola", definition: "A greeting.", example: "Hello, how are you today?", example_translation: "¿Hola, cómo estás hoy?" },
+            { word: "Good", translation: "Bueno/a", definition: "Of high quality or standard.", example: "She is a very good student.", example_translation: "Ella es una muy buena estudiante." },
+            { word: "Time", translation: "Tiempo/Hora", definition: "The indefinite continued progress of existence and events.", example: "What time is it?", example_translation: "¿Qué hora es?" },
+            { word: "People", translation: "Gente/Personas", definition: "Human beings in general or considered collectively.", example: "Many people live in this city.", example_translation: "Mucha gente vive en esta ciudad." },
+            { word: "Water", translation: "Agua", definition: "A colorless, transparent, odorless liquid.", example: "Please, can I have some water?", example_translation: "Por favor, ¿me puedes dar un poco de agua?" },
+            { word: "Work", translation: "Trabajo/Trabajar", definition: "Activity involving mental or physical effort.", example: "I have a lot of work to do.", example_translation: "Tengo mucho trabajo que hacer." },
+            { word: "Day", translation: "Día", definition: "A period of 24 hours.", example: "Have a good day!", example_translation: "¡Que tengas un buen día!" },
+            { word: "Home", translation: "Casa/Hogar", definition: "The place where one lives permanently.", example: "I'm going home now.", example_translation: "Me voy a casa ahora." },
+            { word: "Love", translation: "Amor/Amar", definition: "An intense feeling of deep affection.", example: "They share a deep love for each other.", example_translation: "Ellos comparten un amor profundo el uno por el otro." },
+            { word: "Food", translation: "Comida", definition: "Any nutritious substance that people or animals eat or drink.", example: "What's your favorite food?", example_translation: "¿Cuál es tu comida favorita?" },
+            { word: "Money", translation: "Dinero", definition: "A current medium of exchange in the form of coins and banknotes.", example: "I need some money to buy groceries.", example_translation: "Necesito dinero para comprar víveres." },
+            { word: "Friend", translation: "Amigo/a", definition: "A person whom one knows and with whom one has a bond of mutual affection.", example: "My best friend is coming to visit.", example_translation: "Mi mejor amigo viene de visita." },
+            { word: "Happy", translation: "Feliz", definition: "Feeling or showing pleasure or contentment.", example: "She looks very happy today.", example_translation: "Ella se ve muy feliz hoy." },
+            { word: "Learn", translation: "Aprender", definition: "Gain or acquire knowledge of or skill in.", example: "I want to learn a new language.", example_translation: "Quiero aprender un nuevo idioma." },
+            { word: "Book", translation: "Libro", definition: "A written or printed work consisting of pages bound together.", example: "I'm reading an interesting book.", example_translation: "Estoy leyendo un libro interesante." },
+            { word: "Travel", translation: "Viajar", definition: "Make a journey, typically of some length or abroad.", example: "I love to travel to new places.", example_translation: "Me encanta viajar a lugares nuevos." },
+            { word: "Music", translation: "Música", definition: "Vocal or instrumental sounds combined in such a way as to produce beauty of form, harmony, and expression of emotion.", example: "Do you like listening to music?", example_translation: "¿Te gusta escuchar música?" },
+            { word: "Family", translation: "Familia", definition: "A group consisting of parents and children living together in a household.", example: "My family is very important to me.", example_translation: "Mi familia es muy importante para mí." },
+            { word: "City", translation: "Ciudad", definition: "A large town.", example: "New York is a very big city.", example_translation: "Nueva York es una ciudad muy grande." },
+            { word: "Car", translation: "Coche/Carro", definition: "A road vehicle, typically with four wheels, powered by an internal combustion engine or electric motor and able to carry a small number of people.", example: "He bought a new car last month.", example_translation: "Él compró un coche nuevo el mes pasado." }
+        ];
+
+        let currentIndex = 0;
+        let learningItemCount = 0; // Counter to control ad appearance
+
+        const currentWordEl = document.getElementById('current-word');
+        const currentTranslationEl = document.getElementById('current-translation'); // New element for translation
+        const currentDefinitionEl = document.getElementById('current-definition');
+        const currentExampleEl = document.getElementById('current-example');
+        const currentExampleTranslationEl = document.getElementById('current-example-translation'); // New element for example translation
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const wordAudioButton = document.getElementById('word-audio-button'); // Audio button for the word
+        const exampleAudioButton = document.getElementById('example-audio-button'); // New audio button for the example
+        const adContainer = document.getElementById('ad-container');
+
+        // Initialize Speech Synthesis API
+        const synth = window.speechSynthesis;
+
+        /**
+         * Displays the current word, its translation, definition, example, and example translation in the interface.
+         * Also updates the state of the navigation buttons.
+         */
+        function displayCurrentWord() {
+            const wordData = words[currentIndex];
+            if (wordData) {
+                currentWordEl.textContent = wordData.word;
+                currentTranslationEl.textContent = wordData.translation; // Display translation
+                currentDefinitionEl.textContent = wordData.definition;
+                currentExampleEl.textContent = wordData.example;
+                currentExampleTranslationEl.textContent = wordData.example_translation; // Display example translation
+            } else {
+                currentWordEl.textContent = "No hay más palabras.";
+                currentTranslationEl.textContent = "";
+                currentDefinitionEl.textContent = "";
+                currentExampleEl.textContent = "";
+                currentExampleTranslationEl.textContent = "";
+            }
+            updateNavigationButtons();
+            handleAdDisplay();
+        }
+
+        /**
+         * Updates the state of the "Previous" and "Next" buttons
+         * to enable or disable them based on the current position.
+         */
+        function updateNavigationButtons() {
+            prevButton.disabled = currentIndex === 0;
+            nextButton.disabled = currentIndex === words.length - 1;
+        }
+
+        /**
+         * Controls the visibility of the ad container.
+         * The ad is shown every 2 learning words.
+         */
+        function handleAdDisplay() {
+            // The ad is shown after every 2 learning items.
+            // That is, on the 3rd, 6th, 9th, etc. learning item.
+            // If learningItemCount is 0, 1, 2, 3, 4, 5...
+            // Ads will appear when learningItemCount is 2, 5, 8...
+            // This means (learningItemCount + 1) % 3 === 0
+            if ((learningItemCount + 1) % 3 === 0) {
+                adContainer.classList.remove('hidden');
+                // This is where your actual ad network code would go.
+                // For example, if you use Adsterra, you might have a function that reloads the ad.
+                // loadAdsterraAd(); // A function you would call to load a new ad
+            } else {
+                adContainer.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Navigates to the next word.
+         */
+        function nextWord() {
+            if (currentIndex < words.length - 1) {
+                currentIndex++;
+                learningItemCount++; // Increment the learning item counter
+                displayCurrentWord();
+            }
+        }
+
+        /**
+         * Navigates to the previous word.
+         */
+        function prevWord() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                // Decrement learningItemCount also to maintain consistent ad logic
+                // If you go back and pass an ad point, the ad should disappear.
+                if (learningItemCount > 0) {
+                    learningItemCount--;
+                }
+                displayCurrentWord();
+            }
+        }
+
+        /**
+         * Pronounces the current word using the Speech Synthesis API.
+         */
+        function speakWord() {
+            const wordToSpeak = words[currentIndex].word;
+            if (synth.speaking) {
+                synth.cancel(); // Stop any current speech
+            }
+            const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+            utterance.lang = 'en-US'; // Set language to US English
+            utterance.rate = 0.9; // Slightly slower rate for clarity
+            synth.speak(utterance);
+        }
+
+        /**
+         * Pronounces the current example sentence using the Speech Synthesis API.
+         */
+        function speakExample() {
+            const exampleToSpeak = words[currentIndex].example;
+            if (synth.speaking) {
+                synth.cancel(); // Stop any current speech
+            }
+            const utterance = new SpeechSynthesisUtterance(exampleToSpeak);
+            utterance.lang = 'en-US'; // Set language to US English
+            utterance.rate = 0.8; // Slightly slower rate for example clarity
+            synth.speak(utterance);
+        }
+
+        // Assign event listeners to the buttons
+        nextButton.addEventListener('click', nextWord);
+        prevButton.addEventListener('click', prevWord);
+        wordAudioButton.addEventListener('click', speakWord); // Event listener for the word audio button
+        exampleAudioButton.addEventListener('click', speakExample); // Event listener for the example audio button
+
+        // Load the first word on page load
+        window.onload = displayCurrentWord;
+
+        // Example function to load an ad (simulated)
+        // In a real environment, this would interact with your ad network's SDK
+        // function loadAdsterraAd() {
+        //     // This is where the logic to load a new Adsterra ad would go.
+        //     // This might involve reloading a script or calling a specific Adsterra function.
+        //     console.log("Cargando nuevo anuncio de Adsterra...");
+        //     // If Adsterra uses a script you can reload:
+        //     // const script = document.createElement('script');
+        //     // script.type = 'text/javascript';
+        //     // script.src = '//www.profitabledisplaynetwork.com/YOUR_ADSTERRA_CODE/invoke.js';
+        //     // adContainer.innerHTML = ''; // Clear the container before adding the new script
+        //     // adContainer.appendChild(script);
+        // }
+    </script>
+</body>
+</html>
 
